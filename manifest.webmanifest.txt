@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "LocalVault - Personal Records",
+  "short_name": "LocalVault",
+  "description": "A private, offline-first CRUD records manager.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f6fa",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="A private, offline-first local records manager">
+  <title>LocalVault — Records</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="./">
+        <span class="brand-icon">L</span>
+        <span>LocalVault<small>PERSONAL WORKSPACE</small></span>
+      </a>
+
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav-item active" id="navAll">
+        <span>▦</span> All records
+      </button>
+      <button class="nav-item" id="navCategories">
+        <span>▤</span> Categories
+      </button>
+
+      <div class="sidebar-bottom">
+        <div class="storage-card">
+          <span class="storage-dot"></span>
+          <div>
+            <strong>Local storage</strong>
+            <p id="storageStatus">Connecting to database…</p>
+          </div>
+        </div>
+        <p class="privacy-note">Your records stay in this browser. No account or server required.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">YOUR WORKSPACE</div>
+          <h1>Records</h1>
+        </div>
+        <div class="top-actions">
+          <span class="offline-badge" id="connectionStatus">● Local-first</span>
+          <button class="button button-primary" id="addBtn">
+            <span>＋</span> New record
+          </button>
+        </div>
+      </header>
+
+      <section class="welcome-row">
+        <div>
+          <h2>Keep everything organized.</h2>
+          <p>Create, search, and manage your records in one private place.</p>
+        </div>
+        <div class="today" id="todayLabel"></div>
+      </section>
+
+      <section class="stats-grid" aria-label="Record statistics">
+        <article class="stat-card">
+          <div class="stat-top"><span>Total records</span><span class="stat-icon violet">▦</span></div>
+          <strong id="totalCount">0</strong>
+          <p>All saved entries</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span>Categories</span><span class="stat-icon blue">▤</span></div>
+          <strong id="categoryCount">0</strong>
+          <p>Unique categories</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span>Created this month</span><span class="stat-icon green">↗</span></div>
+          <strong id="monthCount">0</strong>
+          <p>New entries this month</p>
+        </article>
+      </section>
+
+      <section class="records-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>All records</h2>
+            <p>Browse and manage your saved information.</p>
+          </div>
+          <div class="backup-actions">
+            <button class="button button-secondary" id="exportBtn">↓ Export JSON</button>
+            <button class="button button-secondary" id="importBtn">↑ Import JSON</button>
+            <input type="file" id="importFile" accept=".json,application/json" hidden>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" placeholder="Search records…" autocomplete="off">
+          </label>
+          <select id="categoryFilter" aria-label="Filter by category">
+            <option value="">All categories</option>
+          </select>
+          <select id="sortSelect" aria-label="Sort records">
+            <option value="updated">Recently updated</option>
+            <option value="created">Recently created</option>
+            <option value="title">Title A–Z</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>RECORD</th>
+                <th>CATEGORY</th>
+                <th>UPDATED</th>
+                <th class="actions-heading">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="recordsBody">
+              <tr><td colspan="4" class="empty-cell">Loading records…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="table-footer">
+          <span id="resultCount">0 records</span>
+          <span>Stored on this device</span>
+        </footer>
+      </section>
+
+      <footer class="app-footer">
+        <span>LocalVault · Private by design</span>
+        <button class="text-button" id="backupHintBtn">Backup tips</button>
+      </footer>
+    </main>
+  </div>
+
+  <dialog id="recordDialog" class="record-dialog">
+    <form id="recordForm">
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow">RECORD DETAILS</div>
+          <h2 id="dialogTitle">Create record</h2>
+          <p>Fill in the information you want to save.</p>
+        </div>
+        <button type="button" class="icon-button" id="closeDialog" aria-label="Close">✕</button>
+      </div>
+
+      <input type="hidden" id="recordId">
+
+      <label class="field-label" for="recordTitle">Title <span>*</span></label>
+      <input id="recordTitle" name="title" maxlength="120" required
+             placeholder="e.g. Project notes">
+
+      <label class="field-label" for="recordCategory">Category</label>
+      <input id="recordCategory" name="category" maxlength="60"
+             placeholder="e.g. Work, Personal, Ideas">
+
+      <label class="field-label" for="recordDescription">Description</label>
+      <textarea id="recordDescription" name="description" rows="5" maxlength="10000"
+                placeholder="Add details here…"></textarea>
+
+      <div class="dialog-footer">
+        <button type="button" class="button button-secondary" id="cancelDialog">Cancel</button>
+        <button type="submit" class="button button-primary" id="saveBtn">Save record</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirmDialog" class="confirm-dialog">
+    <div class="confirm-content">
+      <div class="delete-icon">!</div>
+      <h2>Delete this record?</h2>
+      <p>This action cannot be undone unless you have a backup.</p>
+      <div class="dialog-footer">
+        <button class="button button-secondary" id="keepRecord">Cancel</button>
+        <button class="button button-danger" id="confirmDelete">Delete record</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="messageDialog" class="confirm-dialog">
+    <div class="confirm-content">
+      <h2 id="messageTitle">Notice</h2>
+      <p id="messageText"></p>
+      <div class="dialog-footer">
+        <button class="button button-primary" id="closeMessage">OK</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="backupDialog" class="confirm-dialog">
+    <div class="confirm-content">
+      <h2>Keep a backup</h2>
+      <p>Your records are stored in this browser on this device. Browser data can be cleared, and local records do not automatically sync between devices.</p>
+      <p>Export a JSON backup regularly and keep it somewhere safe. Importing a backup merges records by ID and replaces matching records.</p>
+      <div class="dialog-footer">
+        <button class="button button-primary" id="closeBackup">Got it</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
